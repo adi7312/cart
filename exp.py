@@ -1,67 +1,7 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, f1_score, classification_report
-from cart import CART
-
-# Zakładając, że klasa CART jest zaimplementowana, jak podałeś:
-
-# Funkcja do wczytania danych z plików
-def load_data(file_path):
-    labels = []
-    sequences = []
-    with open(file_path, 'r') as f:
-        lines = f.readlines()
-        for i in range(1, len(lines), 2):  # Zaczynamy od linii 2 (pomijamy pierwszą, która to liczba)
-            label = int(lines[i].strip())  # Etykieta (0 lub 1)
-            sequence = lines[i + 1].strip()  # Sekwencja DNA
-            labels.append(label)
-            sequences.append(sequence)
-    return np.array(sequences), np.array(labels)
-
-# Funkcja do ekstrakcji cech z sekwencji DNA
-def extract_features(sequences, seq_length=90): 
-    features = []
-    for seq in sequences:
-        feature = []
-        for nucleotide in seq:
-            if nucleotide == 'A':
-                feature.extend([1, 0, 0, 0])  # Kodowanie A jako [1, 0, 0, 0]
-            elif nucleotide == 'T':
-                feature.extend([0, 1, 0, 0])  # Kodowanie T jako [0, 1, 0, 0]
-            elif nucleotide == 'G':
-                feature.extend([0, 0, 1, 0])  # Kodowanie G jako [0, 0, 1, 0]
-            elif nucleotide == 'C':
-                feature.extend([0, 0, 0, 1])  # Kodowanie C jako [0, 0, 0, 1]
-        
-        # Jeśli sekwencja jest krótsza niż zakładana długość, uzupełniamy ją zerami
-        if len(feature) < seq_length * 4:
-            feature.extend([0] * (seq_length * 4 - len(feature)))  # Wypełnienie zerami
-        
-        # Jeśli sekwencja jest dłuższa, obcinamy do wymaganej długości
-        features.append(feature[:seq_length * 4])
-    
-    return np.array(features)
-
-# Funkcja do oceny klasyfikatora
-def evaluate_model(clf, X_test, y_test):
-    y_pred = clf.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f'Accuracy: {accuracy * 100:.2f}%')
-
-    cm = confusion_matrix(y_test, y_pred)
-    print("\nConfusion Matrix:")
-    print(cm)
-
-    precision = precision_score(y_test, y_pred)
-    recall = recall_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
-
-    print(f"\nPrecision: {precision:.2f}")
-    print(f"Recall: {recall:.2f}")
-    print(f"F1-score: {f1:.2f}")
-
-    print("\nClassification Report:")
-    print(classification_report(y_test, y_pred))
+from cart import CART  # Importowanie klasy CART
+from utils import load_data, extract_features, evaluate_model
 
 # Wczytanie danych
 donor_sequences, donor_labels = load_data('spliceATrainKIS.dat')
