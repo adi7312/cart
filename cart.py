@@ -70,6 +70,17 @@ class CART:
             self.label = target[0]
             return
 
+        if self.depth >= self.depth_limit or len(np.unique(target)) == 1:
+            if len(np.unique(target)) == 1:
+                self.label = target[0]
+            else:
+                if self.criterion in ["gini", "entropy"]:
+                    class_counts = [(cls, (target == cls).sum()) for cls in np.unique(target)]
+                    self.label = max(class_counts, key=lambda item: item[1])[0]
+                else:
+                    self.label = np.mean(target)
+            return
+
         highest_gain = 0.0
         best_fit_feature, best_threshold = None, None
 
@@ -99,7 +110,8 @@ class CART:
                     highest_gain = gain
                     best_fit_feature = c
                     best_threshold = t
-
+        if highest_gain == 0 or best_fit_feature is None or best_threshold is None:
+            return
         self.feature = best_fit_feature
         self.gain = highest_gain
         self.threshold = best_threshold
