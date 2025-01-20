@@ -7,22 +7,19 @@ class CART:
 
     Attributes:
         depth_limit (int): Maximum depth of the tree.
-        min_crit (float): Minimum criterion value for pruning.
         criterion (str): Impurity measure ('gini' or 'entropy').
     """
 
-    def __init__(self, depth_limit: int = 5, min_crit: float = 0.1, criterion: str = 'gini') -> None:
+    def __init__(self, depth_limit: int = 5, criterion: str = 'gini') -> None:
         """
         Initialize the CART object with hyperparameters.
 
         Args:
             depth_limit (int): Maximum depth of the tree.
-            min_crit (float): Minimum criterion value for pruning.
             criterion (str): Impurity measure ('gini' or 'entropy').
         """
         self.root: Optional[CART] = None
         self.depth_limit: int = depth_limit
-        self.min_crit: float = min_crit
         self.criterion: str = criterion
         self.feature: Optional[int] = None
         self.label: Optional[Union[float, int]] = None
@@ -53,7 +50,7 @@ class CART:
             features (np.ndarray): Input features.
             target (np.ndarray): Target values or labels.
         """
-        self.root = CART()
+        self.root = CART(depth_limit=self.depth_limit, criterion=self.criterion)
         self.root._build_tree(features, target)
 
     def _build_tree(self, features: np.ndarray, target: np.ndarray) -> None:
@@ -70,15 +67,12 @@ class CART:
             self.label = target[0]
             return
 
-        if self.depth >= self.depth_limit or len(np.unique(target)) == 1:
-            if len(np.unique(target)) == 1:
-                self.label = target[0]
+        if self.depth >= self.depth_limit:
+            if self.criterion in ["gini", "entropy"]:
+                class_counts = [(cls, (target == cls).sum()) for cls in np.unique(target)]
+                self.label = max(class_counts, key=lambda item: item[1])[0]
             else:
-                if self.criterion in ["gini", "entropy"]:
-                    class_counts = [(cls, (target == cls).sum()) for cls in np.unique(target)]
-                    self.label = max(class_counts, key=lambda item: item[1])[0]
-                else:
-                    self.label = np.mean(target)
+                self.label = np.mean(target)
             return
 
         highest_gain = 0.0
@@ -139,10 +133,12 @@ class CART:
         Returns:
             float: Entropy.
         """
-        return -sum(
-            (p := len(target[target == c]) / target.shape[0]) * np.log2(p) if p > 0 else 0
-            for c in np.unique(target)
-        )
+        entropy = 0.0
+        for c in np.unique(target):
+            p = len(target[target == c]) / target.shape[0]
+            if p > 0:
+                entropy -= p * np.log2(p)
+        return entropy
 
     def _calculate_impurity(self, target: np.ndarray) -> float:
         """
@@ -172,11 +168,11 @@ class CART:
         right_features, right_target = features[right_mask], target[right_mask]
         left_features, left_target = features[left_mask], target[left_mask]
 
-        self.right = CART()
+        self.right = CART(depth_limit=self.depth_limit, criterion=self.criterion)
         self.right.depth = self.depth + 1
         self.right._build_tree(right_features, right_target)
 
-        self.left = CART()
+        self.left = CART(depth_limit=self.depth_limit, criterion=self.criterion)
         self.left.depth = self.depth + 1
         self.left._build_tree(left_features, left_target)
 

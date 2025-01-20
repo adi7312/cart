@@ -37,19 +37,20 @@ def extract_features(sequences, seq_length=90):
 def evaluate_model(clf, X_test, y_test):
     y_pred = clf.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
-    print(f'Accuracy: {accuracy * 100:.2f}%')
+    #print(f'Accuracy: {accuracy * 100:.2f}%')
 
     cm = confusion_matrix(y_test, y_pred)
-    print("\nConfusion Matrix:")
-    print(cm)
+    #print("\nConfusion Matrix:")
+    #print(cm)
 
     precision = precision_score(y_test, y_pred)
     recall = recall_score(y_test, y_pred)
     f1 = f1_score(y_test, y_pred)
 
-    print(f"\nPrecision: {precision:.2f}")
-    print(f"Recall: {recall:.2f}")
-    print(f"F1-score: {f1:.2f}")
+    #print(f"\nPrecision: {precision:.2f}")
+    #print(f"Recall: {recall:.2f}")
+    #print(f"F1-score: {f1:.2f}")
 
-    print("\nClassification Report:")
-    print(classification_report(y_test, y_pred))
+    #print("\nClassification Report:")
+    #print(classification_report(y_test, y_pred))
+    return {'accuracy': accuracy, 'precision': precision, 'recall': recall, 'f1': f1}
