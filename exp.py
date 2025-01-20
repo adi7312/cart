@@ -1,32 +1,35 @@
-from sklearn.model_selection import train_test_split
+import numpy as np
 from cart import CART
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
 from utils import load_data, extract_features, evaluate_model
 
+def train_and_evaluate(data_file, experiment_type):
+    sequences, labels = load_data(data_file)
+    features = extract_features(sequences)
 
+    X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.3, random_state=None)
 
-def donor_experiment():
-    donor_sequences, donor_labels = load_data('spliceDTrainKIS.dat')
-    donor_features = extract_features(donor_sequences)
+    cart = CART(depth_limit=5, min_crit=0.1, criterion='gini')
+    cart.fit(X_train, y_train)
 
-    X_donor_train, X_donor_test, y_donor_train, y_donor_test = train_test_split(donor_features, donor_labels, test_size=0.3, random_state=None)
+    print(f"\n{experiment_type} Data - Own Model Evaluation:")
+    evaluate_model(cart, X_test, y_test)
 
-    cart_donor = CART(depth_limit=5, min_crit=0.1, criterion='gini')
-    cart_donor.fit(X_donor_train, y_donor_train)
-    print("\nDonor Data - Model Evaluation:")
-    evaluate_model(cart_donor, X_donor_test, y_donor_test)
+def train_and_evaluate_model(data_file, experiment_type):
+    sequences, labels = load_data(data_file)
+    features = extract_features(sequences)
 
+    X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.3, random_state=None)
 
-def acceptor_experiment():
-    acceptor_sequences, acceptor_labels = load_data('spliceATrainKIS.dat')
-    acceptor_features = extract_features(acceptor_sequences)
+    clf = DecisionTreeClassifier(random_state=None)
+    clf.fit(X_train, y_train)
 
-    X_acceptor_train, X_acceptor_test, y_acceptor_train, y_acceptor_test = train_test_split(acceptor_features, acceptor_labels, test_size=0.3, random_state=None)
-
-    cart_acceptor = CART(depth_limit=5, min_crit=0.1, criterion='gini')
-    cart_acceptor.fit(X_acceptor_train, y_acceptor_train)
-    print("\nAcceptor Data - Model Evaluation:")
-    evaluate_model(cart_acceptor, X_acceptor_test, y_acceptor_test)
+    print(f'\n{experiment_type} Data - Imported Model Evaluation:')
+    evaluate_model(clf, X_test, y_test)
 
 if __name__ == '__main__':
-    donor_experiment()
-    acceptor_experiment()
+    train_and_evaluate('spliceDTrainKIS.dat', 'Donor')
+    train_and_evaluate('spliceATrainKIS.dat', 'Acceptor')
+    train_and_evaluate_model('spliceATrainKIS.dat', 'Donor')
+    train_and_evaluate_model('spliceDTrainKIS.dat', 'Acceptor')
