@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Optional, Union
 
 class CART:
     """
@@ -10,7 +11,7 @@ class CART:
         criterion (str): Impurity measure ('gini' or 'entropy').
     """
 
-    def __init__(self, depth_limit=5, min_crit=0.1, criterion='gini'):
+    def __init__(self, depth_limit: int = 5, min_crit: float = 0.1, criterion: str = 'gini') -> None:
         """
         Initialize the CART object with hyperparameters.
 
@@ -19,21 +20,20 @@ class CART:
             min_crit (float): Minimum criterion value for pruning.
             criterion (str): Impurity measure ('gini' or 'entropy').
         """
-        self.root = None
-        self.depth_limit = depth_limit
-        self.min_crit = min_crit
-        self.criterion = criterion
-        self.feature = None
-        self.label = None
-        self.nsamp = None
-        self.gain = None
-        self.left = None
-        self.right = None
-        self.depth = 0
-        self.threshold = None
+        self.root: Optional[CART] = None
+        self.depth_limit: int = depth_limit
+        self.min_crit: float = min_crit
+        self.criterion: str = criterion
+        self.feature: Optional[int] = None
+        self.label: Optional[Union[float, int]] = None
+        self.nsamp: Optional[int] = None
+        self.gain: Optional[float] = None
+        self.left: Optional['CART'] = None
+        self.right: Optional['CART'] = None
+        self.depth: int = 0
+        self.threshold: Optional[float] = None
 
-
-    def predict(self, features):
+    def predict(self, features: np.ndarray) -> np.ndarray:
         """
         Predict the labels for a given set of features.
 
@@ -45,7 +45,7 @@ class CART:
         """
         return np.array([self.root._predict(feature) for feature in features])
 
-    def fit(self, features, target):
+    def fit(self, features: np.ndarray, target: np.ndarray) -> None:
         """
         Fit the CART model to the provided features and target.
 
@@ -56,7 +56,7 @@ class CART:
         self.root = CART()
         self.root._build_tree(features, target)
 
-    def _build_tree(self, features, target):
+    def _build_tree(self, features: np.ndarray, target: np.ndarray) -> None:
         """
         Recursively build the decision tree.
 
@@ -117,7 +117,7 @@ class CART:
         self.threshold = best_threshold
         self._split(features, target)
 
-    def _calc_gini_index(self, target):
+    def _calc_gini_index(self, target: np.ndarray) -> float:
         """
         Calculate the Gini index for a given target distribution.
 
@@ -129,7 +129,7 @@ class CART:
         """
         return 1.0 - sum((len(target[target == c]) / target.shape[0]) ** 2 for c in np.unique(target))
 
-    def _calc_entropy(self, target):
+    def _calc_entropy(self, target: np.ndarray) -> float:
         """
         Calculate the entropy for a given target distribution.
 
@@ -144,7 +144,7 @@ class CART:
             for c in np.unique(target)
         )
 
-    def _calculate_impurity(self, target):
+    def _calculate_impurity(self, target: np.ndarray) -> float:
         """
         Calculate impurity based on the criterion.
 
@@ -158,7 +158,7 @@ class CART:
             return self._calc_gini_index(target)
         return self._calc_entropy(target)
 
-    def _split(self, features, target):
+    def _split(self, features: np.ndarray, target: np.ndarray) -> None:
         """
         Split the data into left and right branches based on the best threshold.
 
@@ -180,9 +180,7 @@ class CART:
         self.left.depth = self.depth + 1
         self.left._build_tree(left_features, left_target)
 
-
-
-    def _predict(self, data):
+    def _predict(self, data: np.ndarray) -> Union[float, int]:
         """
         Recursively predict the label for a single data instance.
 
@@ -197,25 +195,3 @@ class CART:
                 return self.right._predict(data)
             return self.left._predict(data)
         return self.label
-
-    def print_tree(self):
-        """
-        Print the entire decision tree.
-        """
-        self.root._show_tree(0, ' ')
-
-    def _show_tree(self, depth, cond):
-        """
-        Recursively display the tree structure.
-
-        Args:
-            depth (int): Current depth in the tree.
-            cond (str): Condition leading to this node.
-        """
-        prefix = '\t' * depth + cond
-        if self.feature is not None:
-            print(f"{prefix}if X[{self.feature}] <= {self.threshold}")
-            self.left._show_tree(depth + 1, 'then ')
-            self.right._show_tree(depth + 1, 'else ')
-        else:
-            print(f"{prefix}{{value: {self.label}, samples: {self.nsamp}}}")

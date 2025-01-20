@@ -3,7 +3,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, r
 
 
 def one_hot_encode(sequence):
-    mapping = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': -1}  # Dodanie 'N'
+    mapping = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': -1} 
     encoded = np.zeros((len(sequence), 4)) 
     for i, nucleotide in enumerate(sequence):
         index = mapping.get(nucleotide, -1)
